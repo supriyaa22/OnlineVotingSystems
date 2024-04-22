@@ -6,7 +6,7 @@ from django.contrib import messages
 from .models import Poll, Choice, Vote
 from .forms import PollAddForm, EditPollForm, ChoiceAddForm
 from django.http import HttpResponse
-
+from .forms import QuestionForm
 
 @login_required()
 def polls_list(request):
@@ -58,16 +58,30 @@ def list_by_user(request):
 def polls_add(request):
     if request.user.has_perm('polls.add_poll'):
         if request.method == 'POST':
-            form = PollAddForm(request.POST)
+            form = PollAddForm(request.POST, request.FILES)
             if form.is_valid:
                 poll = form.save(commit=False)
                 poll.owner = request.user
                 poll.save()
+                form.save_m2m()  # Save the many-to-many data for the form.
+                # If you have a separate form for the Question, handle it here
+                # For instance, if the uploaded image is for the Question model linked to the Poll:
+                question_form = QuestionForm(request.POST, request.FILES)
+                if question_form.is_valid():
+                    question = question_form.save(commit=False)
+                    question.poll = poll  # Link the question to the poll
+                    question.save()
                 Choice(
                     poll=poll, choice_text=form.cleaned_data['choice1']).save()
                 Choice(
                     poll=poll, choice_text=form.cleaned_data['choice2']).save()
-
+                # Now save the image to a Question instance
+                image = request.FILES.get('image')  # Get the uploaded image
+                if image:
+                    # Assuming that you have updated the Poll model to include an image field
+                    poll.image = image
+                    poll.save()
+                # Notify success
                 messages.success(
                     request, "Poll & Choices added successfully.", extra_tags='alert alert-success alert-dismissible fade show')
 
@@ -89,13 +103,13 @@ def polls_edit(request, poll_id):
         return redirect('home')
 
     if request.method == 'POST':
-        form = EditPollForm(request.POST, instance=poll)
-        if form.is_valid:
-            form.save()
-            messages.success(request, "Poll Updated successfully.",
-                             extra_tags='alert alert-success alert-dismissible fade show')
+        form = EditPollForm(request.POST, request.FILES, instance=poll)
+        if form.is_valid():
+            updated_poll = form.save()
+            messages.success(request, "Poll Updated successfully.", extra_tags='alert alert-success alert-dismissible fade show')
             return redirect("polls:list")
-
+        else:
+            messages.error(request, "Error updating the poll.", extra_tags='alert alert-danger alert-dismissible fade show')
     else:
         form = EditPollForm(instance=poll)
 

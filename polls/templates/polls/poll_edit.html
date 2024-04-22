@@ -6,10 +6,10 @@
         <div class="col-md-6 offset-md-3">
             <h2>Edit poll</h2>
             {% if messages %}
-            {% if messages %}
             <div class="messages">
                 {% for message in messages %}
-                <div {% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}
+                <div {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+                    {{ message }}
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -17,33 +17,42 @@
                 {% endfor %}
             </div>
             {% endif %}
-            {% endif %}
-            <form action="" method="POST">
+            <form action="" method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                {% for field in form %}
+                {{ form.non_field_errors }}
                 <div class="form-group">
-                    {{ field.errors }}
-                    {{ field.label_tag }}
-                    {{ field }}
+                    {{ form.text.errors }}
+                    {{ form.text.label_tag }}
+                    {{ form.text }}
                 </div>
-                {% endfor %}
+                <div class="form-group">
+                    {% if poll.image %}
+                        <label for="id_image">Current Image:</label><br>
+                        <img src="{{ poll.image.url }}" alt="Current Image" style="max-width: 200px; height: auto;"><br>
+                    {% endif %}
+                    {{ form.image.errors }}
+                    {{ form.image }}
+                </div>
                 <button type="submit" class="btn btn-primary">Update</button>
                 <a class="btn btn-danger" href="{% url 'polls:delete_poll' poll.id %}" role="button" onclick="return confirm('Are you sure?')">Delete</a>
                 <a class="btn btn-warning" href="{% url 'polls:add_choice' poll.id %}" role="button">Add Choice</a>
             </form>
-
-            <div class="choices">
-                <h2 class="text-center mt-3">Choices</h2>
-                <hr>
-                <ul class="list-group">
-                    {% for choice in poll.choice_set.all %}
-                    <li class="list-group-item"><a href="{% url 'polls:choice_edit' choice.id %}"><i class="fas fa-pencil-alt"></i></a>&nbsp
-                        {{ choice.choice_text }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-        </div>
-    </div>
+        <br>
+           <!-- Choices section -->
+           <h3>Choices</h3>
+           <div class="choices">
+               {% for choice in poll.choice_set.all %}
+               <div class="input-group mb-3">
+                   <input type="text" class="form-control" value="{{ choice.choice_text }}" readonly>
+                   <div class="input-group-append">
+                       <a href="{% url 'polls:choice_edit' choice.id %}" class="btn btn-outline-secondary" type="button">Edit</a>
+                   </div>
+               </div>
+               {% endfor %}
+           </div>
+           
+           <!-- Rest of the form -->
+       </div>
+   </div>
 </div>
 {% endblock %}

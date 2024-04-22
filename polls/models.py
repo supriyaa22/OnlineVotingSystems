@@ -10,7 +10,9 @@ class Poll(models.Model):
     pub_date = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    #new_field = models.CharField(max_length=100, default='default value')
+    image = models.ImageField(upload_to='polls_images/', blank=True, null=True)
+    
     def user_can_vote(self, user):
         """ 
         Return False if user already voted
@@ -71,3 +73,12 @@ class Vote(models.Model):
 
     def __str__(self):
         return f'{self.poll.text[:15]} - {self.choice.choice_text[:15]} - {self.user.username}'
+
+# ... new edits ...
+class Question(models.Model):
+    #poll = models.ForeignKey(Poll, on_delete=models.CASCADE)  # relating question to poll
+    question_text = models.CharField(max_length=255, null=True, blank=True)  # the text of the question
+    image = models.ImageField(upload_to='questions_images/', blank=True, null=True)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, null=True, blank=True)
+    def __str__(self):
+        return self.question_text

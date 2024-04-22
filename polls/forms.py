@@ -1,6 +1,6 @@
 from django import forms
 from .models import Poll, Choice
-
+from .models import Question
 
 class PollAddForm(forms.ModelForm):
 
@@ -20,7 +20,7 @@ class PollAddForm(forms.ModelForm):
 class EditPollForm(forms.ModelForm):
     class Meta:
         model = Poll
-        fields = ['text', ]
+        fields = ['text', 'image']
         widgets = {
             'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'cols': 20}),
         }
@@ -29,7 +29,12 @@ class EditPollForm(forms.ModelForm):
 class ChoiceAddForm(forms.ModelForm):
     class Meta:
         model = Choice
-        fields = ['choice_text', ]
+        fields = ['choice_text', ] 
         widgets = {
             'choice_text': forms.TextInput(attrs={'class': 'form-control', })
         }
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['question_text', 'image']  # Make sure to include the image field.
